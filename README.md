@@ -17,4 +17,4 @@ python3 main.py [your-file]
 ## Output Demo
 
 ![gpt-4o-result-overview](./assets/gpt-4o-demo.png)
-![gpt-4o-reorder-arguments](./assets/gpt-4o-demo.png)
+![gpt-4o-reorder-arguments](./assets/argument-order.png)
