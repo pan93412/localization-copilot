@@ -21,10 +21,7 @@ I will give you a XML, like:
 </references>
 ```
 
-Reference "reference" and "context", translate source and return a JSON with the final translation:
-
-```
-{"translation": "{your-translation}"}
+Reference "reference" and "context", translate source and return a JSON according to the schema.
 ```
     """.strip()
 
