@@ -5,6 +5,7 @@ import logging
 import os
 import random
 from typing import cast
+import openai
 from rich.logging import RichHandler
 from rich.status import Status
 
@@ -24,6 +25,7 @@ extractor_class_map: dict[str, BaseExtractor] = {
 
 translator_class_map: dict[str, BaseTranslator] = {
     "gpt-4o": Gpt4oTranslator(),
+    "gpt-4o-mini": Gpt4oTranslator(model="gpt-4o-mini"),
 }
 
 async def main() -> None:
@@ -101,7 +103,7 @@ async def main() -> None:
             } for translation in translated_without_none)
 
 
-semaphore = asyncio.Semaphore(16)
+semaphore = asyncio.Semaphore(8)
 
 async def translate(translator: BaseTranslator, translatable: Translatable) -> Translation | None:
     async with semaphore:
@@ -109,14 +111,18 @@ async def translate(translator: BaseTranslator, translatable: Translatable) -> T
 
         logger.info("Translating: %s", translatable)
 
-        try:
-            translation = await translator.translate(translatable)
-            logger.info("Translated: %s", translation)
-            return translation
-
-        except Exception:
-            logger.exception("Failed to translate: %s", translatable)
-            return None
+        while True:
+            try:
+                translation = await translator.translate(translatable)
+                logger.info("Translated: %s", translation)
+                return translation
+            except openai.RateLimitError:
+                logger.exception("Rate limited. Stop worker for 10 seconds.")
+                await asyncio.sleep(10)
+                continue
+            except Exception:
+                logger.exception("Failed to translate: %s", translatable)
+                return None
 
 if __name__ == "__main__":
     asyncio.run(main())

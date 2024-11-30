@@ -10,7 +10,7 @@ from .translator import BaseTranslator
 
 class Gpt4oTranslator(BaseTranslator):
     prompt = """
-You are a professional software translator. Translate the following text to Chinese (Traditional, Taiwan). Use the word which Taiwanese usually says, for example, no "視頻". No explanation of your translation. You can reorder the arguments, but location tag (%s → %1$s) must be mapped (for example, `components %s of service %s is rejected` should be `服務 %2$s 的元件 %1$s 被拒絕`). Use Chinese quote (「」) for English quotes ("``", "''", '""', '“”'). Preserve the format and space in translation.
+You are a professional software translator. Translate the following text to Chinese (Traditional, Taiwan). Use the word which Taiwanese usually says, for example, no "視頻". No explanation of your translation. You can reorder the arguments, but location tag (%s → %1$s) must be mapped (for example, `components %s of service %s is rejected` should be `服務 %2$s 的元件 %1$s 被拒絕`). Use Chinese quote (「」) for English quotes ("``", "''", '""', '“”'). Preserve the format (quotes, prefix, suffix, etc.) and space in translation.
 
 I will give you a XML, like:
 
@@ -30,8 +30,9 @@ Reference "reference" and "context", translate source and return a JSON with the
 
     logger = Logger("Gpt4oTranslator")
 
-    def __init__(self):
+    def __init__(self, model: str = "gpt-4o") -> None:
         self.openai = AsyncOpenAI()
+        self.model = model
 
     async def translate(self, translatable: Translatable) -> Translation:
         input = _construct_input(translatable)
@@ -49,7 +50,7 @@ Reference "reference" and "context", translate source and return a JSON with the
         try:
             completion = await self.openai.chat.completions.create(
                 messages=messages,
-                model="gpt-4o-mini",
+                model=self.model,
                 temperature=0.2,
                 n=1,
                 response_format={
